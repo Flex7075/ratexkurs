@@ -113,6 +113,7 @@
             padding: 20px;
             box-shadow: var(--card-shadow);
             transition: transform 0.3s ease;
+            cursor: pointer;
         }
         
         .currency-card:hover {
@@ -167,6 +168,62 @@
         }
         
         .change-down {
+            color: var(--danger);
+        }
+        
+        /* Currency details */
+        .currency-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background-color: #f8fafc;
+            border-radius: 0 0 12px 12px;
+            margin: 0 -20px -20px;
+        }
+        
+        .currency-details.active {
+            max-height: 150px;
+        }
+        
+        .detail-content {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .price-box {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .buy-box {
+            background-color: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--accent);
+        }
+        
+        .sell-box {
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+        }
+        
+        .price-label {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 5px;
+        }
+        
+        .price-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        
+        .buy-price {
+            color: var(--accent);
+        }
+        
+        .sell-price {
             color: var(--danger);
         }
         
@@ -302,6 +359,11 @@
             
             .currency-rate {
                 font-size: 24px;
+            }
+            
+            .detail-content {
+                grid-template-columns: 1fr;
+                gap: 15px;
             }
         }
         
@@ -523,6 +585,10 @@
                 const changePercent = (change / parseFloat(rate.Rate)) * 100;
                 const isPositive = change >= 0;
                 
+                // Sotib olish va sotish narxlari (markaziy kurs asosida)
+                const buyRate = (parseFloat(rate.Rate) * 0.99).toFixed(2);
+                const sellRate = (parseFloat(rate.Rate) * 1.01).toFixed(2);
+                
                 const card = document.createElement('div');
                 card.className = 'currency-card';
                 card.innerHTML = `
@@ -540,10 +606,45 @@
                         <i class="fas fa-arrow-${isPositive ? 'up' : 'down'}"></i>
                         <span>${Math.abs(change).toFixed(2)} (${Math.abs(changePercent).toFixed(2)}%)</span>
                     </div>
+                    <div class="currency-details">
+                        <div class="detail-content">
+                            <div class="price-box buy-box">
+                                <div class="price-label">Sotib olish</div>
+                                <div class="price-value buy-price">${formatNumber(buyRate)} UZS</div>
+                            </div>
+                            <div class="price-box sell-box">
+                                <div class="price-label">Sotish</div>
+                                <div class="price-value sell-price">${formatNumber(sellRate)} UZS</div>
+                            </div>
+                        </div>
+                    </div>
                 `;
+                
+                // Valyuta kartasini bosganda detallarni ko'rsatish/yashirish
+                card.addEventListener('click', function() {
+                    const details = this.querySelector('.currency-details');
+                    
+                    // Boshqa barcha detallarni yopish
+                    document.querySelectorAll('.currency-details').forEach(item => {
+                        if (item !== details) {
+                            item.classList.remove('active');
+                        }
+                    });
+                    
+                    // Tanlangan valyuta detallarini ko'rsatish/yashirish
+                    details.classList.toggle('active');
+                });
                 
                 cardsContainer.appendChild(card);
             });
+        }
+        
+        // Format raqamni (12345.678 -> 12 345.68)
+        function formatNumber(number) {
+            return new Intl.NumberFormat('uz-UZ', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(number);
         }
         
         // Valyuta jadvalini yangilash
